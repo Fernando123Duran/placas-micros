@@ -1,0 +1,33 @@
+# ==============================================================
+# requirements.txt — Dependencias adicionales al .venv base
+# Versiones exactas instaladas el 2026-10-02
+# ==============================================================
+# El .venv base (tienda-deteccion) ya incluye:
+#   torch==2.13.0+cu130, ultralytics==8.4.120, opencv-python==5.0.0.93,
+#   numpy==2.2.6, pillow==12.3.0, scipy==1.15.3, pydantic==2.13.4, etc.
+#
+# Instalar con:
+#   /home/luffy/Documentos/IA/tienda-deteccion/.venv/bin/pip install -r backend/requirements.txt
+# ==============================================================
+
+# ── OCR ───────────────────────────────────────────────────────
+easyocr==1.7.2
+
+# ── API Web ───────────────────────────────────────────────────
+fastapi==0.142.2
+uvicorn==0.54.0
+starlette==1.7.0
+python-multipart==0.0.32
+websockets==16.1.1
+
+# ── Validación ────────────────────────────────────────────────
+pydantic==2.13.4
+pydantic-settings==2.15.0
+
+# ── Base de datos ─────────────────────────────────────────────
+sqlalchemy==2.0.54
+aiosqlite==0.22.1
+alembic==1.20.0
+
+# ── Utilidades ────────────────────────────────────────────────
+python-dotenv==1.2.4

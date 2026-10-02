@@ -1,0 +1,23 @@
+# ============================================================
+# bytetrack_micros.yaml — Config ByteTracker para Micros
+# ============================================================
+tracker_type: bytetrack
+
+# Umbral alto de confianza (micros son objetos claramente visibles)
+track_high_thresh: 0.40
+
+# Umbral bajo para recuperar tracks perdidos brevemente (oclusión)
+track_low_thresh: 0.15
+
+# Umbral para iniciar un nuevo track (evitar tracks espúreos)
+new_track_thresh: 0.40
+
+# Frames a mantener un track "perdido" vivo
+# 45 frames ≈ 1.5s a 30fps — suficiente para re-aparecer tras oclusión breve
+track_buffer: 45
+
+# Umbral de matching por similitud (IoU)
+match_thresh: 0.85
+
+# Fusionar confianza de detección con similitud de movimiento
+fuse_score: true

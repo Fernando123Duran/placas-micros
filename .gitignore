@@ -1,0 +1,111 @@
+# ==========================================
+# Entornos Virtuales y Dependencias (Python)
+# ==========================================
+.venv/
+venv/
+env/
+ENV/
+build/
+dist/
+*.egg-info/
+*.egg
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# ==========================================
+# Modelos y Pesos de IA (Archivos pesados)
+# ==========================================
+*.pt
+*.pth
+*.onnx
+*.tflite
+*.engine
+*.bin
+*.ckpt
+*.safetensors
+*.h5
+*.pb
+*.param
+
+# ==========================================
+# Dataset e Imágenes Originales
+# ==========================================
+dataset/
+datasets/
+data/analysis/*.png
+data/analysis/*.html
+
+# ==========================================
+# Resultados de Entrenamiento
+# ==========================================
+runs/
+models/
+!models/.gitkeep
+!models/easyocr/.gitkeep
+
+# ==========================================
+# Label Studio
+# ==========================================
+label_studio_data/
+
+# ==========================================
+# Backend — Datos en Runtime
+# ==========================================
+backend/storage/
+backend/db/*.db
+backend/db/*.db-shm
+backend/db/*.db-wal
+!backend/storage/frames/.gitkeep
+!backend/storage/micros/.gitkeep
+!backend/storage/plates/.gitkeep
+!backend/db/.gitkeep
+
+# ==========================================
+# Frontend — Build y Dependencias
+# ==========================================
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+
+# ==========================================
+# Variables de Entorno
+# ==========================================
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ==========================================
+# Archivos del Sistema Operativo
+# ==========================================
+.DS_Store
+Thumbs.db
+
+# ==========================================
+# IDEs
+# ==========================================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ==========================================
+# Logs
+# ==========================================
+*.log
+logs/
+wandb/
+mlruns/
+
+# ==========================================
+# Agents
+# ==========================================
+.agents/

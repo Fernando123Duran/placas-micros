@@ -1,0 +1,16 @@
+# ============================================================
+# data_placas.yaml — Dataset YOLO para Modelo 2: Detector de Placas
+# ============================================================
+# Opera sobre crops del ROI del micro (no sobre imagen completa)
+path: /home/luffy/Documentos/IA/placas-micros/datasets/placas
+
+train: images/train
+val:   images/val
+test:  images/test
+
+# Número de clases
+nc: 1
+
+# Nombres de clases
+names:
+  0: placa

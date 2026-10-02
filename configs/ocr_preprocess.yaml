@@ -1,0 +1,55 @@
+# ============================================================
+# ocr_preprocess.yaml — Variantes de Preprocesamiento OCR
+# ============================================================
+# Cada variante puede activarse/desactivarse para experimentar.
+# La variante "default" es el punto de partida recomendado.
+
+default:
+  resize_min_height: 32     # Si el crop de la placa tiene h < 32px, hacer upscale
+  resize_target_height: 80  # Alto objetivo después del resize (mantiene aspect ratio)
+  grayscale: true           # Convertir a escala de grises
+  clahe: true               # CLAHE para mejorar contraste local
+  clahe_clip: 2.0
+  clahe_grid: [8, 8]
+  sharpening: false         # Sharpening moderado (desactivado por defecto)
+  sharpening_factor: 0.5
+  denoise: false            # GaussianBlur muy leve para reducir ruido
+  denoise_sigma: 0.5
+  threshold: false          # Binarización (desactivada — EasyOCR prefiere grises)
+
+# Variante con sharpening activado
+with_sharpen:
+  resize_min_height: 32
+  resize_target_height: 80
+  grayscale: true
+  clahe: true
+  clahe_clip: 2.0
+  clahe_grid: [8, 8]
+  sharpening: true
+  sharpening_factor: 0.5
+  denoise: false
+  threshold: false
+
+# Variante mínima (solo grayscale + resize)
+minimal:
+  resize_min_height: 32
+  resize_target_height: 80
+  grayscale: true
+  clahe: false
+  sharpening: false
+  denoise: false
+  threshold: false
+
+# Variante con binarización (para experimentar en condiciones difíciles)
+with_threshold:
+  resize_min_height: 32
+  resize_target_height: 80
+  grayscale: true
+  clahe: true
+  clahe_clip: 3.0
+  clahe_grid: [8, 8]
+  sharpening: false
+  denoise: true
+  denoise_sigma: 0.5
+  threshold: true
+  threshold_method: otsu    # 'otsu' o 'adaptive'

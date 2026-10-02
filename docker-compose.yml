@@ -1,0 +1,20 @@
+services:
+  label-studio:
+    image: heartexlabs/label-studio:latest
+    container_name: label_studio
+    user: "root"
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      # Habilitar el servicio de archivos locales en la interfaz de Label Studio
+      - LABEL_STUDIO_LOCAL_FILES_SERVING_ENABLED=true
+      # Ruta raíz dentro del contenedor donde se buscarán los archivos locales
+      - LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT=/label-studio/data/mydata
+      # Opcional: Desactivar la recolección de métricas
+      - DISABLE_TELEMETRY=1
+    volumes:
+      # Persistencia de datos de proyectos, usuarios y base de datos SQLite de Label Studio
+      - ./label_studio_data:/label-studio/data
+      # Montaje del dataset para acceder directamente a las imágenes
+      - ./dataset:/label-studio/data/mydata/dataset

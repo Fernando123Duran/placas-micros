@@ -1,0 +1,59 @@
+# ============================================================
+# train_micros.yaml — Hiperparámetros Modelo 1: Detector de Micros
+# ============================================================
+# Modelo base
+model: yolo26s.pt
+
+# Dataset
+data: configs/data_micros.yaml
+
+# Entrenamiento
+epochs: 150
+patience: 30          # Early stopping si no mejora en 30 epochs consecutivas
+batch: 16             # RTX 4080S 15.56GB VRAM: 16 imgs de 640 usa ~6-8 GB
+imgsz: 640
+device: 0             # GPU 0
+workers: 8
+seed: 42
+deterministic: true
+
+# Optimizador
+optimizer: AdamW
+lr0: 0.001
+lrf: 0.01             # lr final = lr0 * lrf
+momentum: 0.937
+weight_decay: 0.0005
+warmup_epochs: 3
+warmup_momentum: 0.8
+
+# AMP (Automatic Mixed Precision FP16)
+amp: true
+
+# Guardado
+save: true
+save_period: 10       # Checkpoint cada 10 epochs
+plots: true
+
+# Augmentation (ajustada para cámaras de seguridad, vehículos en movimiento)
+mosaic: 1.0           # Combinar 4 imágenes — variedad de fondos y densidades
+scale: 0.5            # Escala 50-150% — micros a distintas distancias
+translate: 0.1        # Desplazamiento hasta 10% — micros no siempre centrados
+degrees: 0.0          # NO rotar — cámara fija, micros siempre horizontales
+flipud: 0.0           # NO flip vertical — ruedas siempre abajo
+fliplr: 0.5           # Flip horizontal — micros pueden venir de ambos sentidos
+hsv_h: 0.015          # Variación de tono moderada
+hsv_s: 0.7            # Variación de saturación — días nublados vs soleados
+hsv_v: 0.4            # Variación de brillo — sombras, contraluz
+perspective: 0.0001   # Perspectiva leve — diferentes ángulos de cámara
+erasing: 0.4          # Oclusión simulada — personas tapando el micro
+mixup: 0.1            # Mejora generalización con valor bajo
+copy_paste: 0.0       # NO usar — artefactos irreales en escenas de tránsito
+blur: 1.5             # Motion blur — vehículos en movimiento
+
+# Mosaic desactivado en últimas epochs para estabilizar
+close_mosaic: 20
+
+# Experimento
+project: runs/micros
+name: exp_m1_yolo26s_640_b16
+exist_ok: false
