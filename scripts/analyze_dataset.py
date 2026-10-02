@@ -364,7 +364,7 @@ def analyze(dataset_dir: Path, output_dir: Path) -> None:
         f"| Total de sesiones (minutos únicos) | {total_sessions} |",
         f"| Imágenes por sesión — mínimo | {min(session_sizes) if session_sizes else 0} |",
         f"| Imágenes por sesión — máximo | {max(session_sizes) if session_sizes else 0} |",
-        f"| Imágenes por sesión — media | {statistics.mean(session_sizes):.1f if session_sizes else 0} |",
+        f"| Imágenes por sesión — media | {statistics.mean(session_sizes) if session_sizes else 0:.1f} |",
         f"",
         f"### Distribución por fecha:",
         f"",
