@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     # Confianzas mínimas
     MIN_MICRO_CONFIDENCE: float = 0.40
     MIN_PLATE_CONFIDENCE: float = 0.35
-    MIN_OCR_CONFIDENCE: float = 0.45
+    MIN_OCR_CONFIDENCE: float = 0.05
 
     # Padding para recortar el micro (porcentaje del bbox)
     MICRO_CROP_PADDING: float = 0.05

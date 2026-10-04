@@ -205,33 +205,26 @@ cp runs/placas/exp_m2_yolo26n_640_b32/weights/best.pt models/plate_detector_v1.p
 ### ─── FASE 11-12: Backend FastAPI ───────────────────────────────
 
 ```bash
-# Configurar variables de entorno
-cp backend/.env.example backend/.env
-# Editar backend/.env con las rutas correctas a los modelos
-
-# Iniciar el servidor de desarrollo
-cd backend
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+# Iniciar el servidor de desarrollo FastAPI
+source /home/luffy/Documentos/IA/tienda-deteccion/.venv/bin/activate
+python -m uvicorn backend.app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 API disponible en: `http://localhost:8000`  
-Documentación Swagger: `http://localhost:8000/docs`
+Documentación interactiva Swagger: `http://localhost:8000/docs`
 
 ---
 
 ### ─── FASE 13: Frontend React + Vite ────────────────────────────
 
 ```bash
-cd frontend
+cd /home/luffy/Documentos/IA/placas-micros/frontend
 
-# Instalar dependencias (primera vez)
-npm install
-
-# Servidor de desarrollo
+# Iniciar servidor de desarrollo Vite
 npm run dev
 ```
 
-Interfaz disponible en: `http://localhost:5173`
+Panel de Control disponible en: `http://localhost:5173`
 
 ---
 

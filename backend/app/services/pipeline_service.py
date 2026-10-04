@@ -99,48 +99,50 @@ class PipelineService:
                     is_valid = ocr_res["is_valid"]
                     ocr_conf = ocr_res["ocr_confidence"]
 
-                    # Solo procesar si el OCR extrajo algún texto con confianza aceptable
-                    is_dup = False
+                    # Si el OCR no extrajo texto claro, etiquetar para trazabilidad
+                    if not plate_norm:
+                        plate_norm = "ILEGIBLE"
+                        plate_raw = plate_raw or "(Sin lectura clara)"
+
+                    # 4. Regla anti-ráfagas / deduplicación
+                    is_dup = is_duplicate_plate(
+                        db, plate_norm, window_minutes=settings.DEDUP_WINDOW_MINUTES
+                    )
+                    saved_to_db = False
                     plate_evidence_url = None
-                    micro_evidence_url = None
 
-                    if plate_norm and ocr_conf >= settings.MIN_OCR_CONFIDENCE:
-                        # 4. Regla anti-ráfagas / deduplicación
-                        is_dup = is_duplicate_plate(
-                            db, plate_norm, window_minutes=settings.DEDUP_WINDOW_MINUTES
+                    if not is_dup:
+                        # 5. Guardar evidencias fotográficas
+                        full_rel, micro_rel, plate_rel = self._save_evidence(
+                            prefix="img",
+                            full_img=img,
+                            micro_crop=micro_crop,
+                            plate_crop=plate_crop,
                         )
+                        plate_evidence_url = f"/storage/{plate_rel}"
+                        micro_evidence_url = f"/storage/{micro_rel}"
 
-                        if not is_dup:
-                            # 5. Guardar evidencias fotográficas
-                            full_rel, micro_rel, plate_rel = self._save_evidence(
-                                prefix="img",
-                                full_img=img,
-                                micro_crop=micro_crop,
-                                plate_crop=plate_crop,
-                            )
-                            plate_evidence_url = f"/storage/{plate_rel}"
-                            micro_evidence_url = f"/storage/{micro_rel}"
-
-                            # 6. Registrar en Base de Datos
-                            event = DetectionEvent(
-                                timestamp=datetime.datetime.utcnow(),
-                                source="image",
-                                track_id=None,
-                                plate_raw=plate_raw,
-                                plate_normalized=plate_norm,
-                                is_valid_bolivian=is_valid,
-                                micro_confidence=micro_conf,
-                                plate_confidence=plate_conf,
-                                ocr_confidence=ocr_conf,
-                                micro_bbox=json.dumps(micro_bbox),
-                                plate_bbox=json.dumps(plate_bbox),
-                                full_image_path=full_rel,
-                                micro_image_path=micro_rel,
-                                plate_image_path=plate_rel,
-                            )
-                            db.add(event)
-                            db.commit()
-                            new_records += 1
+                        # 6. Registrar en Base de Datos SQLite
+                        event = DetectionEvent(
+                            timestamp=datetime.datetime.utcnow(),
+                            source="image",
+                            track_id=None,
+                            plate_raw=plate_raw,
+                            plate_normalized=plate_norm,
+                            is_valid_bolivian=is_valid,
+                            micro_confidence=micro_conf,
+                            plate_confidence=plate_conf,
+                            ocr_confidence=ocr_conf,
+                            micro_bbox=json.dumps(micro_bbox),
+                            plate_bbox=json.dumps(plate_bbox),
+                            full_image_path=full_rel,
+                            micro_image_path=micro_rel,
+                            plate_image_path=plate_rel,
+                        )
+                        db.add(event)
+                        db.commit()
+                        new_records += 1
+                        saved_to_db = True
 
                     plates_info.append({
                         "plate_raw": plate_raw,
@@ -150,6 +152,7 @@ class PipelineService:
                         "ocr_confidence": ocr_conf,
                         "plate_bbox_full": plate_bbox,
                         "is_duplicate": is_dup,
+                        "saved_to_db": saved_to_db,
                         "evidence_plate_url": plate_evidence_url,
                     })
 

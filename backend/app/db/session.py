@@ -39,7 +39,7 @@ def is_duplicate_plate(
     window_minutes: int = None,
 ) -> bool:
     """Verifica si una patente normalizada ya fue registrada en los últimos N minutos."""
-    if not plate_normalized:
+    if not plate_normalized or plate_normalized in ("ILEGIBLE", "SIN_LECTURA", "S/N"):
         return False
 
     mins = window_minutes if window_minutes is not None else settings.DEDUP_WINDOW_MINUTES

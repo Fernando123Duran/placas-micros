@@ -11,6 +11,7 @@ class PlateInfo(BaseModel):
     ocr_confidence: float
     plate_bbox_full: List[int]
     is_duplicate: bool = False
+    saved_to_db: bool = False
     evidence_plate_url: Optional[str] = None
 
 
