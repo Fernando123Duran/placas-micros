@@ -136,44 +136,28 @@ Split resultante:
 
 > ⚠️ Ejecutar tú manualmente. El entrenamiento puede tardar 30-60 min.
 
+Editar hiperparámetros en [`configs/train_micros.yaml`](configs/train_micros.yaml) antes de ejecutar.
+
 ```bash
-python -c "
-from ultralytics import YOLO
-model = YOLO('yolo26s.pt')
-model.train(
-    data='configs/data_micros.yaml',
-    epochs=150,
-    patience=30,
-    batch=16,
-    imgsz=640,
-    device=0,
-    project='runs/micros',
-    name='exp_m1_yolo26s_640_b16',
-    amp=True,
-    workers=8,
-    seed=42,
-    close_mosaic=20,
-    save_period=10,
-    plots=True,
-    degrees=0.0,
-    flipud=0.0,
-    fliplr=0.5,
-    perspective=0.0001,
-    blur=1.5,
-    mixup=0.1,
-    copy_paste=0.0,
-)
-"
+# Entrenamiento con la configuración base del YAML
+python scripts/train_micros.py
+
+# Ejemplos de variantes sin modificar el YAML:
+python scripts/train_micros.py --name exp_m1_yolo26m_640_b16 --model yolo26m.pt
+python scripts/train_micros.py --name exp_m1_yolo26s_960_b8  --imgsz 960 --batch 8
+
+# Reanudar entrenamiento interrumpido:
+python scripts/train_micros.py --resume runs/micros/exp_m1_yolo26s_640_b16/weights/last.pt
 ```
 
-Resultados en: `runs/micros/exp_m1_yolo26s_640_b16/`
+Resultados en: `runs/micros/<name>/`
 
 **Criterios de aceptación:**
 - mAP50 > 0.85
 - mAP50-95 > 0.60
 - Sin signos de overfitting
 
-Si mAP50 < 0.85 → probar con modelo mayor (`yolo26m.pt`) o `imgsz=960`.
+Si mAP50 < 0.85 → editar `configs/train_micros.yaml` (cambiar `model: yolo26m.pt` o `imgsz: 960`) y re-ejecutar con un nuevo `name`.
 
 ---
 
@@ -181,37 +165,20 @@ Si mAP50 < 0.85 → probar con modelo mayor (`yolo26m.pt`) o `imgsz=960`.
 
 > ⚠️ Solo después de aceptar los resultados de Fase 6.
 
+Editar hiperparámetros en [`configs/train_placas.yaml`](configs/train_placas.yaml) antes de ejecutar.
+
 ```bash
-python -c "
-from ultralytics import YOLO
-model = YOLO('yolo26n-p2.pt')
-model.train(
-    data='configs/data_placas.yaml',
-    epochs=150,
-    patience=30,
-    batch=32,
-    imgsz=640,
-    device=0,
-    project='runs/placas',
-    name='exp_m2_yolo26n-p2_640_b32',
-    amp=True,
-    workers=8,
-    seed=42,
-    close_mosaic=20,
-    save_period=10,
-    plots=True,
-    degrees=5.0,
-    flipud=0.0,
-    fliplr=0.0,
-    perspective=0.0002,
-    blur=2.0,
-    copy_paste=0.0,
-    mosaic=0.5,
-)
-"
+# Entrenamiento con la configuración base del YAML
+python scripts/train_placas.py
+
+# Variante con modelo mayor si el baseline no alcanza el criterio:
+python scripts/train_placas.py --name exp_m2_yolo26s-p2_640_b16 --model yolo26s-p2.pt --batch 16
+
+# Reanudar entrenamiento interrumpido:
+python scripts/train_placas.py --resume runs/placas/exp_m2_yolo26n-p2_640_b32/weights/last.pt
 ```
 
-Resultados en: `runs/placas/exp_m2_yolo26n-p2_640_b32/`
+Resultados en: `runs/placas/<name>/`
 
 **Criterios de aceptación:**
 - mAP50 > 0.80
