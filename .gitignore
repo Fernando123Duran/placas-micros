@@ -17,7 +17,7 @@ __pycache__/
 .ruff_cache/
 .coverage
 htmlcov/
-
+video/
 # ==========================================
 # Modelos y Pesos de IA (Archivos pesados)
 # ==========================================
