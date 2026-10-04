@@ -181,21 +181,23 @@ python scripts/train_placas.py --resume runs/placas/exp_m2_yolo26n-p2_640_b32/we
 Resultados en: `runs/placas/<name>/`
 
 **Criterios de aceptación:**
-- mAP50 > 0.80
+- mAP50 > 0.80 (✅ Obtenido: **0.986**)
 - Sin falsos positivos evidentes
+
+> 📄 **Informe detallado de conclusiones:** Consulta [README_EXP_1.md](file:///home/luffy/Documentos/IA/placas-micros/README_EXP_1.md) para el análisis completo de métricas, curvas y tiempos de ambos entrenamientos.
 
 ---
 
 ### ─── FASE 8-10: Pipeline completo ──────────────────────────────
 
-> Implementación del backend. Copiar los mejores pesos al directorio `models/`:
+> ✅ Los modelos del Experimento 1 ya fueron validados y copiados a `models/`:
+> - `models/micro_detector_v1.pt`
+> - `models/plate_detector_v1.pt`
 
 ```bash
-# Copiar mejor modelo de micros
+# Si se desea re-copiar manualmente:
 cp runs/micros/exp_m1_yolo26s_640_b16/weights/best.pt models/micro_detector_v1.pt
-
-# Copiar mejor modelo de placas
-cp runs/placas/exp_m2_yolo26n-p2_640_b32/weights/best.pt models/plate_detector_v1.pt
+cp runs/placas/exp_m2_yolo26n_640_b32/weights/best.pt models/plate_detector_v1.pt
 ```
 
 ---

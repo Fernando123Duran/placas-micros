@@ -2,8 +2,8 @@
 # train_placas.yaml — Hiperparámetros Modelo 2: Detector de Placas
 # ============================================================
 # Opera sobre crops del ROI del micro — placa es el único objeto a detectar
-# Modelo con capa P2 para objetos pequeños
-model: yolo26n-p2.pt
+# Modelo preentrenado nano para detección rápida en crops de micro
+model: yolo26n.pt
 
 # Dataset
 data: configs/data_placas.yaml
@@ -46,7 +46,6 @@ hsv_s: 0.5
 hsv_v: 0.5            # Mayor variación brillo — placas en sombra o contraluz
 perspective: 0.0002   # Perspectiva — placas en ángulo
 erasing: 0.3          # Oclusión parcial de placa
-blur: 2.0             # Motion blur — vehículo en movimiento
 mixup: 0.0
 copy_paste: 0.0
 
@@ -54,5 +53,5 @@ close_mosaic: 20
 
 # Experimento
 project: runs/placas
-name: exp_m2_yolo26n-p2_640_b32
+name: exp_m2_yolo26n_640_b32
 exist_ok: false

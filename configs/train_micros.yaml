@@ -48,7 +48,6 @@ perspective: 0.0001   # Perspectiva leve — diferentes ángulos de cámara
 erasing: 0.4          # Oclusión simulada — personas tapando el micro
 mixup: 0.1            # Mejora generalización con valor bajo
 copy_paste: 0.0       # NO usar — artefactos irreales en escenas de tránsito
-blur: 1.5             # Motion blur — vehículos en movimiento
 
 # Mosaic desactivado en últimas epochs para estabilizar
 close_mosaic: 20

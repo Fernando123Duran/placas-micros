@@ -96,6 +96,7 @@ def main():
     # ── Importar y ejecutar ───────────────────────────────────────────────────
     try:
         from ultralytics import YOLO
+        from ultralytics.cfg import DEFAULT_CFG_DICT
     except ImportError:
         print("\n[ERROR] ultralytics no está instalado. Activa el .venv:")
         print("  source /home/luffy/Documentos/IA/tienda-deteccion/.venv/bin/activate")
@@ -115,7 +116,11 @@ def main():
         cfg["resume"] = True
     else:
         print(f"\n  Modelo base: {model_name}")
-        model = YOLO(model_name)
+        if model_name.endswith(".yaml"):
+            print(f"  Arquitectura YAML detectada ({model_name}), transfiriendo pesos preentrenados...")
+            model = YOLO(model_name).load("yolo26s.pt")
+        else:
+            model = YOLO(model_name)
 
     # Asegurar que el proyecto apunta a runs/micros/
     cfg.setdefault("project", str(ROOT / "runs" / "micros"))
@@ -127,11 +132,19 @@ def main():
         data_path = ROOT / data_path
     cfg["data"] = str(data_path)
 
+    # Filtrar únicamente los parámetros reconocidos por Ultralytics
+    filtered_cfg = {}
+    for k, v in cfg.items():
+        if k in DEFAULT_CFG_DICT:
+            filtered_cfg[k] = v
+        else:
+            print(f"  [AVISO] Parámetro no reconocido por YOLO ignorado: {k}={v}")
+
     print(f"\n  Iniciando entrenamiento...")
-    print(f"  Resultados en: {cfg['project']}/{cfg['name']}/\n")
+    print(f"  Resultados en: {filtered_cfg.get('project', cfg.get('project'))}/{filtered_cfg.get('name', cfg.get('name'))}/\n")
 
     # ── Entrenamiento ──────────────────────────────────────────────────────────
-    results = model.train(**cfg)
+    results = model.train(**filtered_cfg)
 
     print(f"\n{'='*60}")
     print(f"  Entrenamiento completado")

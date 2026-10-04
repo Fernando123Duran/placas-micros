@@ -36,8 +36,8 @@ def parse_args():
     parser = argparse.ArgumentParser(
         description="Entrenamiento del Detector de Placas (YOLO26-P2).",
     )
-    parser.add_argument("--model", type=str, default="yolo26n-p2.pt",
-                        help="Modelo base preentrenado con P2 (defecto: yolo26n-p2.pt)")
+    parser.add_argument("--model", type=str, default="yolo26n.pt",
+                        help="Modelo base preentrenado (defecto: yolo26n.pt)")
     parser.add_argument("--data", type=str, default=str(ROOT / "configs" / "data_placas.yaml"),
                         help="Ruta al dataset data.yaml (defecto: configs/data_placas.yaml)")
     parser.add_argument("--epochs", type=int, default=150,
@@ -54,8 +54,8 @@ def parse_args():
                         help="Número de hilos/workers para DataLoader (defecto: 8)")
     parser.add_argument("--project", type=str, default=str(ROOT / "runs" / "placas"),
                         help="Directorio de destino de los experimentos (defecto: runs/placas)")
-    parser.add_argument("--name", type=str, default="exp_m2_yolo26n-p2_640_b32",
-                        help="Nombre del experimento/carpeta (defecto: exp_m2_yolo26n-p2_640_b32)")
+    parser.add_argument("--name", type=str, default="exp_m2_yolo26n_640_b32",
+                        help="Nombre del experimento/carpeta (defecto: exp_m2_yolo26n_640_b32)")
     parser.add_argument("--resume", type=str, default=None,
                         help="Ruta a checkpoint last.pt para reanudar entrenamiento (defecto: None)")
     parser.add_argument("--config", type=str, default=str(CONFIG_PATH),
@@ -97,6 +97,7 @@ def main():
 
     try:
         from ultralytics import YOLO
+        from ultralytics.cfg import DEFAULT_CFG_DICT
     except ImportError:
         print("\n[ERROR] ultralytics no está instalado. Activa el .venv:")
         print("  source /home/luffy/Documentos/IA/tienda-deteccion/.venv/bin/activate")
@@ -114,7 +115,11 @@ def main():
         cfg["resume"] = True
     else:
         print(f"\n  Modelo base: {model_name}")
-        model = YOLO(model_name)
+        if model_name.endswith(".yaml"):
+            print(f"  Arquitectura YAML detectada ({model_name}), transfiriendo pesos preentrenados...")
+            model = YOLO(model_name).load("yolo26n.pt")
+        else:
+            model = YOLO(model_name)
 
     cfg.setdefault("project", str(ROOT / "runs" / "placas"))
     cfg.setdefault("name", "exp_m2")
@@ -124,10 +129,18 @@ def main():
         data_path = ROOT / data_path
     cfg["data"] = str(data_path)
 
-    print(f"\n  Iniciando entrenamiento...")
-    print(f"  Resultados en: {cfg['project']}/{cfg['name']}/\n")
+    # Filtrar únicamente los parámetros reconocidos por Ultralytics
+    filtered_cfg = {}
+    for k, v in cfg.items():
+        if k in DEFAULT_CFG_DICT:
+            filtered_cfg[k] = v
+        else:
+            print(f"  [AVISO] Parámetro no reconocido por YOLO ignorado: {k}={v}")
 
-    results = model.train(**cfg)
+    print(f"\n  Iniciando entrenamiento...")
+    print(f"  Resultados en: {filtered_cfg.get('project', cfg.get('project'))}/{filtered_cfg.get('name', cfg.get('name'))}/\n")
+
+    results = model.train(**filtered_cfg)
 
     print(f"\n{'='*60}")
     print(f"  Entrenamiento completado")
