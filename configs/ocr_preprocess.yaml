@@ -1,55 +1,68 @@
 # ============================================================
-# ocr_preprocess.yaml — Variantes de Preprocesamiento OCR
+# ocr_preprocess.yaml — Variantes de Preprocesamiento OCR con OpenCV
 # ============================================================
-# Cada variante puede activarse/desactivarse para experimentar.
-# La variante "default" es el punto de partida recomendado.
+# Cada variante aplica una combinación calibrada de filtros de visión artificial.
+# La variante "default" incluye deskewing, reescalado cúbico, filtro bilateral y CLAHE.
 
 default:
   resize_min_height: 32     # Si el crop de la placa tiene h < 32px, hacer upscale
-  resize_target_height: 80  # Alto objetivo después del resize (mantiene aspect ratio)
+  resize_target_height: 85  # Alto objetivo después del resize (mantiene aspect ratio)
+  deskew: true              # Corrección de ángulo/inclinación de la placa (±25°)
+  bilateral: true           # Filtro bilateral para reducir ruido preservando bordes
+  bilateral_d: 7
+  bilateral_sigma_color: 50
+  bilateral_sigma_space: 50
   grayscale: true           # Convertir a escala de grises
-  clahe: true               # CLAHE para mejorar contraste local
-  clahe_clip: 2.0
+  clahe: true               # CLAHE para compensar sombras y reflejos
+  clahe_clip: 2.2
   clahe_grid: [8, 8]
-  sharpening: false         # Sharpening moderado (desactivado por defecto)
-  sharpening_factor: 0.5
-  denoise: false            # GaussianBlur muy leve para reducir ruido
-  denoise_sigma: 0.5
-  threshold: false          # Binarización (desactivada — EasyOCR prefiere grises)
+  border_padding: 8         # Padding blanco neutral para evitar corte de caracteres en bordes
+  sharpening: false
+  threshold: false
 
-# Variante con sharpening activado
+# Variante con realce morfológico (Black-Hat) para placas oscurecidas o de bajo contraste
+with_morphology:
+  resize_min_height: 32
+  resize_target_height: 85
+  deskew: true
+  bilateral: true
+  bilateral_d: 7
+  grayscale: true
+  clahe: true
+  clahe_clip: 3.0
+  clahe_grid: [8, 8]
+  blackhat: true            # Morfología Black-Hat para aislar caracteres oscuros sobre fondo claro
+  blackhat_kernel: [15, 5]
+  border_padding: 10
+  sharpening: false
+  threshold: false
+
+# Variante con realce de bordes (Sharpening / Laplace)
 with_sharpen:
   resize_min_height: 32
-  resize_target_height: 80
+  resize_target_height: 85
+  deskew: true
+  bilateral: false
   grayscale: true
   clahe: true
   clahe_clip: 2.0
   clahe_grid: [8, 8]
   sharpening: true
-  sharpening_factor: 0.5
-  denoise: false
+  sharpening_factor: 0.6
+  border_padding: 8
   threshold: false
 
-# Variante mínima (solo grayscale + resize)
-minimal:
-  resize_min_height: 32
-  resize_target_height: 80
-  grayscale: true
-  clahe: false
-  sharpening: false
-  denoise: false
-  threshold: false
-
-# Variante con binarización (para experimentar en condiciones difíciles)
+# Variante con binarización Otsu para condiciones extremas
 with_threshold:
   resize_min_height: 32
-  resize_target_height: 80
+  resize_target_height: 85
+  deskew: true
+  bilateral: true
+  bilateral_d: 5
   grayscale: true
   clahe: true
-  clahe_clip: 3.0
+  clahe_clip: 2.5
   clahe_grid: [8, 8]
-  sharpening: false
-  denoise: true
-  denoise_sigma: 0.5
   threshold: true
   threshold_method: otsu    # 'otsu' o 'adaptive'
+  border_padding: 8
