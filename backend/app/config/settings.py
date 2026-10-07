@@ -40,7 +40,9 @@ class Settings(BaseSettings):
     API_RELOAD: bool = False
 
     # OCR
+    OCR_ENGINE: str = "paddleocr"  # "paddleocr" o "easyocr"
     OCR_LANGUAGES: Union[str, List[str]] = ["es"]
+    PADDLEOCR_LANG: str = "en"
     OCR_PREPROCESS_VARIANT: str = "default"
     EASYOCR_MODEL_DIR: str = str(ROOT_DIR / "models" / "easyocr")
 

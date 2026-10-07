@@ -80,13 +80,114 @@ class ImagePreprocessor:
         return rotated
 
     @staticmethod
-    def apply_blackhat(gray_img: np.ndarray, kernel_size: Tuple[int, int] = (15, 5)) -> np.ndarray:
-        """Aplica operador morfológico Black-Hat para resaltar caracteres oscuros sobre fondos claros."""
-        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, kernel_size)
-        blackhat = cv2.morphologyEx(gray_img, cv2.MORPH_BLACKHAT, kernel)
-        # Combinar para aumentar contraste local de los trazos de letras
-        enhanced = cv2.subtract(gray_img, blackhat)
-        return enhanced
+    def to_grayscale(img: np.ndarray) -> np.ndarray:
+        """Convierte una imagen a escala de grises si es de 3 canales."""
+        if img is None or img.size == 0:
+            return img
+        if len(img.shape) == 3:
+            return cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        return img
+
+    @staticmethod
+    def adjust_contrast(
+        img: np.ndarray,
+        method: str = "clahe",
+        clip_limit: float = 2.0,
+        grid_size: Tuple[int, int] = (8, 8),
+        gamma: float = 0.8,
+    ) -> np.ndarray:
+        """Aplica ajuste de contraste mediante CLAHE, corrección Gamma o estiramiento lineal percentil."""
+        if img is None or img.size == 0:
+            return img
+
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) if len(img.shape) == 3 else img.copy()
+
+        if method == "clahe":
+            clahe = cv2.createCLAHE(clipLimit=clip_limit, tileGridSize=grid_size)
+            return clahe.apply(gray)
+        elif method == "gamma":
+            # Realza sombras sutiles en placas con relieve
+            inv_gamma = 1.0 / max(gamma, 0.01)
+            table = np.array([((i / 255.0) ** inv_gamma) * 255 for i in np.arange(0, 256)]).astype("uint8")
+            return cv2.LUT(gray, table)
+        elif method == "linear_stretch":
+            p_low, p_high = np.percentile(gray, (2, 98))
+            if p_high > p_low:
+                return np.clip((gray - p_low) * 255.0 / (p_high - p_low), 0, 255).astype(np.uint8)
+            return gray
+        elif method == "unsharp":
+            blurred = cv2.GaussianBlur(gray, (0, 0), 1.2)
+            return cv2.addWeighted(gray, 1.35, blurred, -0.35, 0)
+        return gray
+
+    @staticmethod
+    def binarize(
+        img: np.ndarray,
+        method: str = "otsu",
+        block_size: int = 15,
+        c: int = 3,
+        invert: bool = False,
+    ) -> np.ndarray:
+        """Aplica binarización mediante Otsu o Umbral Adaptativo Gaussiano."""
+        if img is None or img.size == 0:
+            return img
+
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) if len(img.shape) == 3 else img.copy()
+
+        if method == "adaptive":
+            thresh_type = cv2.THRESH_BINARY_INV if invert else cv2.THRESH_BINARY
+            # block_size debe ser impar y mayor a 1
+            bs = block_size if block_size % 2 != 0 else block_size + 1
+            return cv2.adaptiveThreshold(
+                gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, thresh_type, max(bs, 3), c
+            )
+        else:
+            thresh_flag = (cv2.THRESH_BINARY_INV if invert else cv2.THRESH_BINARY) + cv2.THRESH_OTSU
+            _, binary = cv2.threshold(gray, 0, 255, thresh_flag)
+            return binary
+
+    def generate_ocr_variants(self, plate_img: np.ndarray) -> Dict[str, np.ndarray]:
+        """Genera un ensamble de variantes filtradas para evaluación OCR (PaddleOCR / EasyOCR).
+        
+        Incluye:
+        - Grayscale (escala de grises optimizada)
+        - Contrast Gamma (realce de relieve y sombras de troqueles)
+        - Contrast CLAHE (ecualización adaptativa local)
+        - Contrast Linear Stretch (expansión dinámica)
+        - Binarización Otsu
+        - Binarización Adaptativa Gaussiana
+        - Raw RGB con padding de seguridad
+        """
+        if plate_img is None or plate_img.size == 0:
+            return {}
+
+        # 1. Base geométrica: deskewing y resize a altura de 90px
+        base = self.correct_skew(plate_img, max_angle=25.0)
+        h, w = base.shape[:2]
+        target_h = 90
+        scale = target_h / max(h, 1)
+        base = cv2.resize(base, (max(int(w * scale), 20), target_h), interpolation=cv2.INTER_CUBIC)
+
+        gray = self.to_grayscale(base)
+        pad = 8
+
+        def _pad(img_variant):
+            val = 255 if len(img_variant.shape) == 2 else [255, 255, 255]
+            return cv2.copyMakeBorder(img_variant, pad, pad, pad + 2, pad + 2, cv2.BORDER_CONSTANT, value=val)
+
+        # Filtro bilateral para reducir ruido de sensor sin degradar letras
+        gray_bilat = cv2.bilateralFilter(gray, d=5, sigmaColor=35, sigmaSpace=35)
+
+        variants = {
+            "grayscale": _pad(gray_bilat),
+            "contrast_gamma": _pad(self.adjust_contrast(gray_bilat, method="gamma", gamma=0.8)),
+            "contrast_clahe": _pad(self.adjust_contrast(gray_bilat, method="clahe", clip_limit=2.0)),
+            "contrast_stretch": _pad(self.adjust_contrast(gray_bilat, method="linear_stretch")),
+            "binarized_otsu": _pad(self.binarize(gray_bilat, method="otsu")),
+            "binarized_adaptive": _pad(self.binarize(gray_bilat, method="adaptive", block_size=15, c=3)),
+            "raw": _pad(base),
+        }
+        return variants
 
     def preprocess_plate(self, plate_img: np.ndarray, variant: str = None) -> np.ndarray:
         """Aplica el pipeline de preprocesamiento de OpenCV según la variante configurada."""
