@@ -203,7 +203,7 @@ def build_pdf():
     story.append(
         Paragraph(
             "<b>Sistema Inteligente de Detección en Cascada y Reconocimiento de Placas de Transporte Público (ALPR)</b><br/>"
-            "Arquitectura YOLO26 + Motor de OCR Híbrido (PaddleOCR / OpenCV) en Entorno Urbano de Santa Cruz de la Sierra",
+            "Arquitectura YOLO26 + Motor de OCR Híbrido (PaddleOCR / OpenCV) para la Ciudad de Sucre, Bolivia",
             subtitle_style,
         )
     )
@@ -238,7 +238,8 @@ def build_pdf():
     story.append(
         Paragraph(
             "El presente informe documenta el desarrollo integral de una solución de Reconocimiento Automático de Placas "
-            "Vehiculares (ALPR) adaptada a las características del transporte público tradicional (micros urbanos) en Santa Cruz de la Sierra. "
+            "Vehiculares (ALPR) orientada al transporte público tradicional (micros urbanos) de la ciudad de <b>Sucre, Bolivia</b>. "
+            "Para el entrenamiento de los modelos se empleó un dataset base de microbuses bolivianos con transferencia directa a las flotas de Sucre. "
             "Para superar las dificultades de escala, vibración y deterioro severo de la pintura de las matrículas, se implementó una "
             "<b>arquitectura en cascada de dos etapas</b>: un detector de buses con <b>YOLO26s</b> y un detector de matrículas con <b>YOLO26n</b>, "
             "seguido de un motor de transcripción alfanumérica basado en <b>PaddleOCR (PP-OCRv6)</b> con preprocesamiento fotométrico continuo en OpenCV.",
@@ -430,15 +431,17 @@ def build_pdf():
     )
 
     # Insertar Capturas de Pantalla Reales
-    img1_path = SCREENSHOTS_DIR / "01_dashboard_inferencia.png"
+    img1_path = SCREENSHOTS_DIR / "01_dashboard_inferencia_activa.png"
+    if not img1_path.exists():
+        img1_path = SCREENSHOTS_DIR / "01_dashboard_inferencia.png"
     img2_path = SCREENSHOTS_DIR / "02_historial_eventos.png"
     img3_path = SCREENSHOTS_DIR / "03_metricas_stats.png"
     img4_path = SCREENSHOTS_DIR / "04_modelos_stack.png"
 
     if img1_path.exists():
         story.append(KeepTogether([
-            Image(str(img1_path), width=6.5 * inch, height=3.2 * inch),
-            Paragraph("<b>Figura 1:</b> Módulo de Inferencia Visual con Bounding Boxes Interactivas y Diagnóstico Rápido", caption_style),
+            Image(str(img1_path), width=6.5 * inch, height=3.6 * inch),
+            Paragraph("<b>Figura 1:</b> Inferencia Activa en Dashboard: Detección de Microbús, Matrícula 1026PKF Validada (100% OCR), Control Anti-Duplicados y Latencia GPU (~5.7 ms)", caption_style),
         ]))
 
     if img2_path.exists():

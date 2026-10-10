@@ -40,7 +40,8 @@ Dado que los archivos de pesos `.pt` no deben versionarse en repositorios Git po
 ## 2. Dataset y Procedimiento de Preparación
 
 ### 2.1. Recolección de Datos
-* **Ámbito geográfico:** Santa Cruz de la Sierra, Bolivia.
+* **Ámbito geográfico de aplicación:** Sucre, Bolivia (Transporte público urbano).
+* **Origen del dataset de entrenamiento:** Imágenes y secuencias de buses urbanos bolivianos (recolectadas como dataset base en Santa Cruz), compartiendo la misma tipología vehicular (Toyota Coaster, chasis adaptados) y normativa de matrículas aplicable en Sucre.
 * **Sujeto de estudio:** Buses de transporte público urbano ("micros tradicionales" de diversas líneas: Línea 1, 2, 8, 10, etc.).
 * **Condiciones de captura:** Variabilidad de iluminación diurna, ángulos frontales y semi-perpendiculares, diferentes distancias focales y niveles de congestión vehicular.
 

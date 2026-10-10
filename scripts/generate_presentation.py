@@ -115,7 +115,7 @@ def create_presentation():
     p1.space_after = Pt(14)
 
     p2 = tf1.add_paragraph()
-    p2.text = "Arquitectura YOLO26 + Motor OCR Híbrido (PaddleOCR / OpenCV) | Santa Cruz de la Sierra"
+    p2.text = "Arquitectura YOLO26 + Motor OCR Híbrido (PaddleOCR / OpenCV) | Sucre, Bolivia"
     p2.font.name = "Arial"
     p2.font.size = Pt(16)
     p2.font.color.rgb = COLOR_MUTED
@@ -135,14 +135,14 @@ def create_presentation():
     set_slide_background(s2)
     add_header(s2, "Contexto y Problemática del Transporte Público Urbano")
 
-    add_card(s2, Inches(0.8), Inches(1.8), Inches(5.6), Inches(4.8), "Desafíos en Santa Cruz de la Sierra")
+    add_card(s2, Inches(0.8), Inches(1.8), Inches(5.6), Inches(4.8), "Desafíos en la Ciudad de Sucre")
     tb2_left = s2.shapes.add_textbox(Inches(1.0), Inches(2.5), Inches(5.2), Inches(3.9))
     tf2_l = tb2_left.text_frame
     tf2_l.word_wrap = True
     bullets2_l = [
         ("Falta de Trazabilidad Digital:", "El transporte tradicional opera sin fiscalización automatizada de recorridos ni control de frecuencias."),
         ("Deterioro Físico de Matrículas:", "La pintura negra de las placas se desgasta por lavado abrasivo, sol y polvo, dejando solo el troquel metálico."),
-        ("Entorno Urbano Ruidoso:", "Letreros de rutas, publicidad en parabrisas y tráfico denso inducen falsos positivos en sistemas OCR convencionales."),
+        ("Entorno Urbano Complejo:", "Letreros de rutas, publicidad en parabrisas y calles estrechas con tráfico denso dificultan la lectura manual."),
     ]
     for i, (b_title, b_desc) in enumerate(bullets2_l):
         p = tf2_l.paragraphs[0] if i == 0 else tf2_l.add_paragraph()
@@ -364,7 +364,9 @@ def create_presentation():
     set_slide_background(s7)
     add_header(s7, "Plataforma Operativa: Área de Inferencia Visual")
 
-    img_infer = SCREENSHOTS_DIR / "01_dashboard_inferencia.png"
+    img_infer = SCREENSHOTS_DIR / "01_dashboard_inferencia_activa.png"
+    if not img_infer.exists():
+        img_infer = SCREENSHOTS_DIR / "01_dashboard_inferencia.png"
     if img_infer.exists():
         s7.shapes.add_picture(str(img_infer), Inches(0.8), Inches(1.8), Inches(7.5), Inches(4.8))
 

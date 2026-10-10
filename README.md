@@ -7,7 +7,7 @@
 ![Frontend](https://img.shields.io/badge/Frontend-React%20%7C%20Vite%20%7C%20Dark%20UI-61DAFB?style=for-the-badge&logo=react)
 ![GPU](https://img.shields.io/badge/GPU-RTX%204080%20SUPER-76B900?style=for-the-badge&logo=nvidia)
 
-> **Solución integral de Visión por Computadora e Inteligencia Artificial** desarrollada para la detección automática de buses de transporte público urbano ("micros tradicionales"), localización precisa de matrículas vehiculares y reconocimiento óptico de caracteres (ALPR) con normalización normativa para el parque automotor de **Santa Cruz de la Sierra, Bolivia**.
+> **Solución integral de Visión por Computadora e Inteligencia Artificial** desarrollada para la detección automática de buses de transporte público urbano ("micros tradicionales"), localización precisa de matrículas vehiculares y reconocimiento óptico de caracteres (ALPR) con normalización normativa para el sistema de transporte público de **Sucre, Bolivia** (utilizando dataset de entrenamiento adaptado de micros urbanos bolivianos).
 
 ---
 

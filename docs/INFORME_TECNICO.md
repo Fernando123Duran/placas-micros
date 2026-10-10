@@ -11,7 +11,7 @@
 
 ## RESUMEN EJECUTIVO
 
-El presente proyecto documenta el diseño, entrenamiento, optimización e implementación de un sistema integral de Reconocimiento Automático de Matrículas Vehiculares (*Automatic License Plate Recognition* - ALPR) aplicado a buses de transporte público urbano ("micros tradicionales") en Santa Cruz de la Sierra, Bolivia. 
+El presente proyecto documenta el diseño, entrenamiento, optimización e implementación de un sistema integral de Reconocimiento Automático de Matrículas Vehiculares (*Automatic License Plate Recognition* - ALPR) orientado al transporte público urbano ("micros tradicionales") de la ciudad de **Sucre, Bolivia**. Para el entrenamiento de los detectores de inteligencia artificial se empleó un dataset base de microbuses urbanos bolivianos, logrando una transferencia inmediata y efectiva a las flotas operativas de Sucre.
 
 Para resolver los desafíos de escala, oclusiones parciales, vibración y variación de iluminación, se diseñó una **arquitectura en cascada de dos etapas basada en YOLO26**, complementada con un **motor de OCR híbrido multi-variante basado en PaddleOCR y visión artificial clásica (OpenCV)**. Los resultados experimentales demostraron un desempeño sobresaliente: el detector de micros (YOLO26s) alcanzó un **mAP50 del 98.9%**, mientras que el detector de placas vehiculares (YOLO26n) logró un **mAP50 del 98.6%**, con una latencia de inferencia extremo a extremo de tan solo **~5.7 milisegundos en GPU**. La solución se integró en una plataforma web operativa con backend asíncrono en FastAPI y un dashboard interactivo en React, implementando control de persistencia relacional en SQLite y reglas heurísticas anti-duplicados.
 
@@ -20,8 +20,8 @@ Para resolver los desafíos de escala, oclusiones parciales, vibración y variac
 ## 1. INTRODUCCIÓN: PROBLEMA Y OBJETIVOS
 
 ### 1.1. Contexto y Planteamiento del Problema
-El transporte público tradicional en ciudades latinoamericanas, y particularmente en Santa Cruz de la Sierra, constituye la columna vertebral de la movilidad urbana. Sin embargo, su fiscalización y control operativo presentan serias dificultades:
-1. **Falta de trazabilidad vehicular:** Gran parte de las flotas operan sin control de frecuencias automatizado ni auditoría digital de recorridos.
+El transporte público tradicional en ciudades intermedias y capitales de Bolivia, como **Sucre**, constituye la columna vertebral de la movilidad urbana diaria. Sin embargo, su fiscalización y control operativo presentan serias dificultades:
+1. **Falta de trazabilidad vehicular:** Gran parte de las flotas de micros operan sin control de frecuencias automatizado ni auditoría digital de recorridos.
 2. **Condiciones visuales adversas:** Las placas vehiculares están sometidas a polvo, grasa, vibraciones mecánicas continuas y deterioro físico severo (desgaste de pintura negra en los troqueles metálicos).
 3. **Limitaciones del ALPR convencional:** Los sistemas de OCR de propósito general suelen fallar drásticamente cuando se aplican a cuadros completos de video debido a la desproporción entre el tamaño del vehículo y el área diminuta que ocupa la matrícula, o ante placas donde la pintura ha desaparecido y solo persiste el relieve metálico estampado.
 
@@ -56,7 +56,7 @@ Esta separación desacopla la variabilidad de la escena urbana de la detección 
 ## 3. DATASET Y PREPARACIÓN DE DATOS
 
 ### 3.1. Adquisición y Características de las Muestras
-El conjunto de datos se compiló a partir de capturas en campo y secuencias de video en intersecciones y avenidas de Santa Cruz de la Sierra. Se incluyeron múltiples líneas de micros tradicionales (buses de chasis mediano típicos como Toyota Coaster y Mercedes-Benz adaptados), garantizando:
+El conjunto de datos base se compiló a partir de capturas en campo de microbuses urbanos bolivianos (dataset inicial adquirido en Santa Cruz y transferido a Sucre). Las flotas de ambas ciudades comparten morfología vehicular idéntica (buses de chasis mediano típicos como Toyota Coaster y Mercedes-Benz adaptados) y el mismo marco regulatorio de tipografía y formato de matrículas vehiculares bolivianas, garantizando:
 * Variación de ángulo: Frontal directo, semi-perpendicular y tres cuartos.
 * Variación de iluminación: Luz solar directa, días nublados y contraluz.
 * Oclusión y proximidad: Micros en tráfico denso con corte parcial de carrocería.
@@ -199,10 +199,10 @@ El sistema incluye una interfaz gráfica moderna de nivel operativo construida e
 4. **Tarjetas de Estadísticas:** Indicadores clave de desempeño (KPIs): Total de detecciones, tasa de placas bolivianas válidas, confianza promedio del OCR y tiempo medio de procesamiento.
 
 ### 6.2. Capturas de Pantalla del Sistema
-
-#### Figura 1: Módulo de Inferencia Visual y Detección en Cascada
-![Área de Inferencia Visual](screenshots/01_dashboard_inferencia.png)
-*Vista principal del dashboard mostrando la zona de carga de evidencias, el canvas de renderizado de bounding boxes y el resumen inmediato de detecciones.*
+ 
+#### Figura 1: Inferencia Activa y Detección en Cascada en el Dashboard
+![Inferencia Activa en Dashboard](screenshots/01_dashboard_inferencia_activa.png)
+*Detección en tiempo real en la interfaz: microbús identificado, matrícula '1026PKF' recortada y validada normativamente (100% OCR), control de duplicados en ventana de 5 minutos y métricas de latencia GPU (~5.7 ms).*
 
 #### Figura 2: Historial Centralizado de Eventos y Evidencias
 ![Historial de Eventos](screenshots/02_historial_eventos.png)
