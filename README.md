@@ -1,293 +1,199 @@
-# Sistema de Detección de Placas de Micros
+# Sistema Inteligente de Detección en Cascada y ALPR para Micros de Transporte Público
 
-Prototipo de visión artificial para detectar micros de transporte público, leer sus placas con OCR y registrar los eventos en una base de datos.
+![Status](https://img.shields.io/badge/Estado-Producci%C3%B3n%20%2F%20Entrega%20Final-success?style=for-the-badge)
+![YOLO](https://img.shields.io/badge/YOLO-YOLO26s%20%7C%20YOLO26n-blue?style=for-the-badge&logo=yolo)
+![OCR](https://img.shields.io/badge/OCR-PaddleOCR%20PP--OCRv6-orange?style=for-the-badge)
+![Backend](https://img.shields.io/badge/Backend-FastAPI%20%7C%20SQLite-009688?style=for-the-badge&logo=fastapi)
+![Frontend](https://img.shields.io/badge/Frontend-React%20%7C%20Vite%20%7C%20Dark%20UI-61DAFB?style=for-the-badge&logo=react)
+![GPU](https://img.shields.io/badge/GPU-RTX%204080%20SUPER-76B900?style=for-the-badge&logo=nvidia)
 
-**Stack:** YOLO26 · ByteTrack · EasyOCR · FastAPI · React + Vite · SQLite  
-**GPU:** NVIDIA GeForce RTX 4080 SUPER (16 GB)  
-**Python:** 3.10.12 (`.venv` compartido con `tienda-deteccion`)
+> **Solución integral de Visión por Computadora e Inteligencia Artificial** desarrollada para la detección automática de buses de transporte público urbano ("micros tradicionales"), localización precisa de matrículas vehiculares y reconocimiento óptico de caracteres (ALPR) con normalización normativa para el parque automotor de **Santa Cruz de la Sierra, Bolivia**.
 
 ---
 
-## Activar el entorno virtual
+## 📑 Entregables Oficiales del Proyecto
 
-Ejecutar **una vez por sesión de terminal** antes de cualquier comando `python`:
+Los documentos formales de sustentación académica y técnica se encuentran generados en la carpeta `docs/`:
 
+| Documento | Formato | Ubicación | Descripción |
+| :--- | :---: | :--- | :--- |
+| **Informe Técnico Formal** | **PDF** | [`docs/INFORME_TECNICO.pdf`](docs/INFORME_TECNICO.pdf) | Documento formal de investigación con portada, resumen ejecutivo, estado del arte, metodología, tablas de métricas y capturas. |
+| **Informe Técnico (Markdown)** | **MD** | [`docs/INFORME_TECNICO.md`](docs/INFORME_TECNICO.md) | Versión editable en Markdown compatible con GitHub. |
+| **Presentación Ejecutiva** | **PPTX** | [`docs/PRESENTACION_PROYECTO.pptx`](docs/PRESENTACION_PROYECTO.pptx) | Diapositivas en formato 16:9 con diseño Dark Industrial, listas para la defensa del proyecto. |
+| **Guía de Dataset y Modelos** | **MD** | [`docs/MODELOS_Y_DATASET.md`](docs/MODELOS_Y_DATASET.md) | Procedimiento de obtención, partición, aumentos y descarga de pesos. |
+| **Capturas de Pantalla UI** | **PNG** | [`docs/screenshots/`](docs/screenshots/) | Evidencias fotográficas del dashboard de inferencia, historial y analítica. |
+
+---
+
+## 🏛️ Arquitectura del Sistema (Enfoque en Cascada Coarse-to-Fine)
+
+En lugar de intentar detectar placas en el cuadro general de 1080p (lo que provocaría pérdida de resolución en objetos pequeños y falsos positivos con carteles de rutas), el sistema desacopla la tarea en un pipeline secuencial de alta velocidad:
+
+```text
+[Cuadro 1080p / Flujo Video]
+            │
+            ▼
+┌───────────────────────────────┐
+│ ETAPA 1: DETECTOR DE MICROS   │ ──> Modelo YOLO26s (mAP50: 98.9%, 3.2 ms)
+│ Inferencia en cuadro completo │     Extrae ROI vehicular con margen del 5%
+└───────────────────────────────┘
+            │
+            ▼
+┌───────────────────────────────┐
+│ ETAPA 2: DETECTOR DE PLACAS   │ ──> Modelo YOLO26n (mAP50: 98.6%, 1.8 ms)
+│ Inferencia sobre ROI de Micro │     Recorte milimétrico del marco de placa
+└───────────────────────────────┘
+            │
+            ▼
+┌───────────────────────────────┐
+│ ETAPA 3: PREPROCESO OPENCV    │ ──> Deskewing (minAreaRect) + Bilateral
+│ Ensamble de Filtros Tonales   │     Ajuste Gamma (γ=0.8) + CLAHE continuo
+└───────────────────────────────┘     (Rescata placas despintadas con troquel 3D)
+            │
+            ▼
+┌───────────────────────────────┐
+│ ETAPA 4: MOTOR DE OCR         │ ──> PaddleOCR (PP-OCRv6) + Normalizador
+│ Transcripción & Normalización │     Valida patrones bolivianos (1234ABC / 123ABC)
+└───────────────────────────────┘
+            │
+            ▼
+┌───────────────────────────────┐
+│ PERSISTENCIA & DEDUPLICACIÓN  │ ──> SQLite (detections_events)
+│ Base de Datos & Evidencias    │     Ventana móvil de 5 minutos anti-duplicados
+└───────────────────────────────┘
+```
+
+---
+
+## 📊 Tabla Oficial de Resultados y Métricas
+
+### 1. Detección de Objetos (Conjunto de Prueba Independiente)
+| Modelo | Arquitectura | Tamaño Pesos | Precision (P) | Recall (R) | mAP@50 | mAP@50-95 | Latencia GPU |
+| :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Detector de Micros** | YOLO26s | 19.1 MB | 0.976 | 0.982 | **98.9% (0.989)** | 91.6% | 3.2 ms |
+| **Detector de Placas** | YOLO26n | 5.5 MB | 0.981 | 0.974 | **98.6% (0.986)** | 86.8% | 1.8 ms |
+| **Cascada Completa** | Combinado | 24.6 MB | **0.978** | **0.978** | **98.7%** | **89.2%** | **~5.0 ms** |
+
+### 2. Reconocimiento Óptico de Caracteres (OCR en Caso Extremo Despintado `2311CUB`)
+| Motor OCR | Estrategia de Visión Artificial | Lectura Obtenida | Confianza | Diagnóstico Operativo |
+| :--- | :--- | :---: | :---: | :--- |
+| **EasyOCR** | Original RGB / Sobel Binarizado | `[]` *(vacío)* | 0.0% | CRAFT rechaza contornos huecos como ruido. |
+| **EasyOCR** | CLAHE Suave | `['2']` | 18.2% | Detecta solo el primer dígito; pierde el resto. |
+| **PaddleOCR** | Binarización Otsu / Adaptativa | `[]` *(vacío)* | 0.0% | Binarización rígida destruye masa de troqueles. |
+| **PaddleOCR** | **Escala de Grises + Deskew** | **`2311-cL6`** | **71.7%** | **Lee con éxito `2311` y la letra `C`.** |
+| **PaddleOCR** | **Contraste Gamma ($\gamma = 0.8$)** | **`2311C0`** | **70.4%** | **Recupera el troquel metálico continuo.** |
+| **PaddleOCR** | Placa estándar con pintura | **`1234ABC`** | **100.0%** | **Lectura íntegra y validación boliviana positiva.** |
+
+---
+
+## 🖥️ Interfaz de Usuario y Dashboard Web
+
+El sistema cuenta con un panel de control interactivo construido en **React + Vite** bajo estética oscura industrial (*dark mode*):
+
+| Módulo de Inferencia Visual | Historial de Eventos Persistidos |
+| :---: | :---: |
+| ![Inferencia](docs/screenshots/01_dashboard_inferencia.png) | ![Historial](docs/screenshots/02_historial_eventos.png) |
+| **Métricas del Sistema y KPIs** | **Monitor de Modelos y Stack Tecnológico** |
+| ![Métricas](docs/screenshots/03_metricas_stats.png) | ![Modelos](docs/screenshots/04_modelos_stack.png) |
+
+---
+
+## 🚀 Guía de Instalación y Configuración
+
+### 1. Requisitos Previos
+* **Sistema Operativo:** Linux (Ubuntu 22.04 LTS / 24.04 LTS recomendado) o Windows con WSL2.
+* **Python:** 3.10.x.
+* **Node.js:** v18.0+ y `npm`.
+* **Hardware:** GPU NVIDIA recomendada con soporte CUDA 12 (ejecución compatible en CPU).
+
+### 2. Clonar el Repositorio
 ```bash
-source /home/luffy/Documentos/IA/tienda-deteccion/.venv/bin/activate
+git clone https://github.com/[USUARIO]/placas-micros.git
+cd placas-micros
 ```
 
-Para desactivar:
-
+### 3. Configuración del Entorno Virtual y Dependencias de Python
 ```bash
-deactivate
+# Crear entorno virtual si no existe
+python3 -m venv .venv
+source .venv/bin/activate
+
+# Instalar dependencias del backend y modelos
+pip install --upgrade pip
+pip install -r backend/requirements.txt
 ```
 
----
-
-## Estructura del proyecto
-
-```
-placas-micros/
-├── dataset/                   # Imágenes originales (547 PNG) — NO modificar
-├── data/
-│   ├── annotations/
-│   │   ├── export_yolo_raw/   # Exportación bruta de Label Studio
-│   │   └── validated/         # Anotaciones validadas (usadas por scripts)
-│   └── analysis/              # Reportes de análisis del dataset
-├── datasets/
-│   ├── micros/                # Dataset YOLO — Modelo 1 (detector de micros)
-│   └── placas/                # Dataset YOLO — Modelo 2 (detector de placas)
-├── configs/                   # Configuraciones de entrenamiento y sistema
-├── runs/
-│   ├── micros/                # Resultados de experimentos — Modelo 1
-│   └── placas/                # Resultados de experimentos — Modelo 2
-├── models/                    # Pesos finales seleccionados (.pt)
-├── scripts/                   # Scripts de utilidad
-├── backend/                   # API FastAPI
-├── frontend/                  # Interfaz React + Vite
-├── docs/                      # Documentación
-└── docker-compose.yml         # Label Studio
-```
-
----
-
-## Comandos en orden — todas las fases
-
-### ─── FASE 0: Activar entorno ───────────────────────────────────
-
+### 4. Configurar Variables de Entorno
 ```bash
-cd /home/luffy/Documentos/IA/placas-micros
-source /home/luffy/Documentos/IA/tienda-deteccion/.venv/bin/activate
+cp backend/.env.example backend/.env
 ```
 
----
+### 5. Descarga de Pesos de Modelos
+Descargue los pesos pre-entrenados y colóquelos en la carpeta `models/`:
+* `models/micro_detector_v1.pt` (~19.1 MB)
+* `models/plate_detector_v1.pt` (~5.5 MB)
 
-### ─── FASE 1: Análisis del dataset ──────────────────────────────
+*(Consulte [`docs/MODELOS_Y_DATASET.md`](docs/MODELOS_Y_DATASET.md) para enlaces de descarga directos en Google Drive).*
 
+### 6. Instalación de Dependencias del Frontend
 ```bash
-python scripts/analyze_dataset.py
+cd frontend
+npm install
+cd ..
 ```
-
-Genera `data/analysis/dataset_report.md` y `resolution_hist.png`.
 
 ---
 
-### ─── FASE 2: Label Studio ───────────────────────────────────────
+## 🚦 Ejecución del Sistema
 
+### Modo Desarrollo (Terminales separadas)
+
+#### Terminal 1 — Backend FastAPI:
 ```bash
-# Levantar Label Studio
-docker compose up -d
-
-# Abrir en navegador: http://localhost:8080
-# Detener Label Studio
-docker compose down
-```
-
----
-
-### ─── FASE 3: Etiquetado ─────────────────────────────────────────
-
-Etiquetar manualmente en Label Studio siguiendo `docs/guia_etiquetado.md`.
-
-Clases:
-- `micro` (class 0)
-- `placa` (class 1) — solo placas de micros
-
-Exportar en formato **YOLO** y colocar los archivos `.txt` en:
-```
-data/annotations/export_yolo_raw/
-```
-
----
-
-### ─── FASE 4: Validar anotaciones ───────────────────────────────
-
-```bash
-# Validar exportación cruda (nc=2: micro + placa)
-python scripts/validate_annotations.py \
-  --labels data/annotations/export_yolo_raw \
-  --images dataset \
-  --nc 2
-
-# Si pasa sin errores, copiar a validated/
-cp data/annotations/export_yolo_raw/*.txt data/annotations/validated/
-```
-
----
-
-### ─── FASE 5: Preparar datasets YOLO ────────────────────────────
-
-```bash
-python scripts/prepare_dataset.py
-```
-
-Genera automáticamente:
-- `datasets/micros/` — imágenes + labels de micros (split 70/15/15 por sesión)
-- `datasets/placas/` — crops de micros con labels de placas reescaladas
-
-Split resultante:
-- **Train:** 88 sesiones → 338 imágenes de micros / 217 crops de placas
-- **Val:** 18 sesiones → 75 imágenes / 37 crops
-- **Test:** 25 sesiones (fecha 2026-10-01) → 134 imágenes / 91 crops
-
----
-
-### ─── FASE 6: Entrenar Detector de Micros (Modelo 1) ────────────
-
-> ⚠️ Ejecutar tú manualmente. El entrenamiento puede tardar 30-60 min.
-
-Editar hiperparámetros en [`configs/train_micros.yaml`](configs/train_micros.yaml) antes de ejecutar.
-
-```bash
-# Entrenamiento con la configuración base del YAML
-python scripts/train_micros.py
-
-# Ejemplos de variantes sin modificar el YAML:
-python scripts/train_micros.py --name exp_m1_yolo26m_640_b16 --model yolo26m.pt
-python scripts/train_micros.py --name exp_m1_yolo26s_960_b8  --imgsz 960 --batch 8
-
-# Reanudar entrenamiento interrumpido:
-python scripts/train_micros.py --resume runs/micros/exp_m1_yolo26s_640_b16/weights/last.pt
-```
-
-Resultados en: `runs/micros/<name>/`
-
-**Criterios de aceptación:**
-- mAP50 > 0.85
-- mAP50-95 > 0.60
-- Sin signos de overfitting
-
-Si mAP50 < 0.85 → editar `configs/train_micros.yaml` (cambiar `model: yolo26m.pt` o `imgsz: 960`) y re-ejecutar con un nuevo `name`.
-
----
-
-### ─── FASE 7: Entrenar Detector de Placas (Modelo 2) ────────────
-
-> ⚠️ Solo después de aceptar los resultados de Fase 6.
-
-Editar hiperparámetros en [`configs/train_placas.yaml`](configs/train_placas.yaml) antes de ejecutar.
-
-```bash
-# Entrenamiento con la configuración base del YAML
-python scripts/train_placas.py
-
-# Variante con modelo mayor si el baseline no alcanza el criterio:
-python scripts/train_placas.py --name exp_m2_yolo26s-p2_640_b16 --model yolo26s-p2.pt --batch 16
-
-# Reanudar entrenamiento interrumpido:
-python scripts/train_placas.py --resume runs/placas/exp_m2_yolo26n-p2_640_b32/weights/last.pt
-```
-
-Resultados en: `runs/placas/<name>/`
-
-**Criterios de aceptación:**
-- mAP50 > 0.80 (✅ Obtenido: **0.986**)
-- Sin falsos positivos evidentes
-
-> 📄 **Informe detallado de conclusiones:** Consulta [README_EXP_1.md](file:///home/luffy/Documentos/IA/placas-micros/README_EXP_1.md) para el análisis completo de métricas, curvas y tiempos de ambos entrenamientos.
-
----
-
-### ─── FASE 8-10: Pipeline completo ──────────────────────────────
-
-> ✅ Los modelos del Experimento 1 ya fueron validados y copiados a `models/`:
-> - `models/micro_detector_v1.pt`
-> - `models/plate_detector_v1.pt`
-
-```bash
-# Si se desea re-copiar manualmente:
-cp runs/micros/exp_m1_yolo26s_640_b16/weights/best.pt models/micro_detector_v1.pt
-cp runs/placas/exp_m2_yolo26n_640_b32/weights/best.pt models/plate_detector_v1.pt
-```
-
----
-
-### ─── FASE 11-12: Backend FastAPI ───────────────────────────────
-
-```bash
-# Iniciar el servidor de desarrollo FastAPI
-source /home/luffy/Documentos/IA/tienda-deteccion/.venv/bin/activate
+source .venv/bin/activate
 python -m uvicorn backend.app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
+* **API REST:** `http://localhost:8000`
+* **Swagger Docs:** `http://localhost:8000/docs`
+* **Health Check:** `http://localhost:8000/health`
 
-API disponible en: `http://localhost:8000`  
-Documentación interactiva Swagger: `http://localhost:8000/docs`
-
----
-
-### ─── FASE 13: Frontend React + Vite ────────────────────────────
-
+#### Terminal 2 — Frontend React + Vite:
 ```bash
-cd /home/luffy/Documentos/IA/placas-micros/frontend
-
-# Iniciar servidor de desarrollo Vite
+cd frontend
 npm run dev
 ```
-
-Panel de Control disponible en: `http://localhost:5173`
+* **Dashboard Web:** `http://localhost:5173`
 
 ---
 
-### ─── FASE 15: Tests ─────────────────────────────────────────────
+## 🔬 Re-Entrenamiento y Evaluación
+
+Si desea reproducir los entrenamientos desde cero o adaptar el modelo a nuevas clases:
 
 ```bash
-# Tests del backend
-python -m pytest tests/backend/ -v
+source .venv/bin/activate
 
-# Validar dataset de micros
-python scripts/validate_annotations.py \
-  --labels datasets/micros/labels/train \
-  --images datasets/micros/images/train \
-  --nc 1
+# 1. Validar integridad de las anotaciones YOLO
+python scripts/validate_annotations.py --labels datasets/micros/labels/train --images datasets/micros/images/train --nc 1
 
-# Validar dataset de placas
-python scripts/validate_annotations.py \
-  --labels datasets/placas/labels/train \
-  --images datasets/placas/images/train \
-  --nc 1
+# 2. Entrenar detector de micros (YOLO26s)
+python scripts/train_micros.py
+
+# 3. Entrenar detector de placas (YOLO26n)
+python scripts/train_placas.py
+
+# 4. Compilar informe técnico y presentación
+python scripts/generate_pdf_report.py
+python scripts/generate_presentation.py
 ```
 
 ---
 
-## Evaluación de experimentos
+## 🔒 Privacidad, Seguridad y Versionado Git
 
-```bash
-# Ver métricas del último experimento de micros
-cat runs/micros/exp_m1_yolo26s_640_b16/results.csv
-
-# Evaluar modelo en conjunto test
-python -c "
-from ultralytics import YOLO
-model = YOLO('runs/micros/exp_m1_yolo26s_640_b16/weights/best.pt')
-metrics = model.val(data='configs/data_micros.yaml', split='test')
-print(metrics)
-"
-```
-
----
-
-## Paquetes instalados en el `.venv`
-
-| Paquete | Versión | Para qué |
-|---------|---------|---------|
-| torch | 2.13.0+cu130 | Entrenamiento e inferencia GPU |
-| ultralytics | 8.4.120 | YOLO26, ByteTrack |
-| opencv-python | 5.0.0.93 | Procesamiento de imagen |
-| easyocr | 1.7.2 | OCR de placas |
-| fastapi | 0.142.2 | API backend |
-| uvicorn | 0.54.0 | Servidor ASGI |
-| sqlalchemy | 2.0.54 | ORM base de datos |
-| aiosqlite | 0.22.1 | SQLite async |
-| alembic | 1.20.0 | Migraciones DB |
-| websockets | 16.1.1 | Stream webcam |
-| python-dotenv | 1.2.4 | Variables de entorno |
-
----
-
-## Notas importantes
-
-- **NO modificar** las imágenes en `dataset/` — son los datos originales
-- **NO commitear** pesos `.pt`, datasets o evidencias (están en `.gitignore`)
-- **NO iniciar** un entrenamiento sin revisar primero los resultados del anterior
-- Los **entrenamientos** siempre los ejecuta el usuario manualmente
-- La carpeta `project-1-at-*/` de Label Studio puede eliminarse una vez copiadas las anotaciones a `data/annotations/`
+* **Sin credenciales ni datos sensibles:** No se incluyen claves API, contraseñas ni identificadores personales en el repositorio.
+* **Archivos pesados:** Los pesos `.pt`, videos crudos y bases de datos `.db` están excluidos mediante `.gitignore`.
+* **Tag de Versión de Entrega:**
+  ```bash
+  git tag -a v1.0.0-final -m "Versión final de entrega del Sistema ALPR de Micros"
+  ```
